@@ -15,8 +15,9 @@
           {% include 'images.html' %}
         </div>
         <div style="position:absolute; bottom:6%; width: 600px;">
-          <button type="submit" formaction="/guess" formmethod="post" class="btn btn-info" form="img_form" style="margin-left:50px; margin-right:50px; width: 150px;">Guess</button>
-          <button type="submit" formaction="/next" form="img_form" formmethod="get" class="btn btn-success" style="margin-left:50px; margin-right:50px; width: 150px;">>></button>
+          <button type="submit" formaction="/back" form="img_form" formmethod="get" class="btn btn-danger" style="margin-left:10px; margin-right:10px; width: 150px;"><<</button>
+          <button type="submit" formaction="/guess" formmethod="post" class="btn btn-info" form="img_form" style="margin-left:10px; margin-right:10px; width: 150px;">Guess</button>
+          <button type="submit" formaction="/next" form="img_form" formmethod="get" class="btn btn-success" style="margin-left:10px; margin-right:10px; width: 150px;">>></button>
         </div>
       </div>
     </form>
