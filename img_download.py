@@ -75,14 +75,15 @@ def parse_data(data):
     # create a database connection
     conn = database.create_connection(db)
     out = list()
+    k = 0
     for i in range(len(data)):
         line = data[i][1]
         words = line.split()
         for word in words:
-            # word = word.strip(",.!?;:")
+            k += 1
             if database.select_img(conn, word) == None and word not in out:
                 out.append(word)
-    return out
+    return out, k
 
 def parse_lines_words(data):
     db = "database.db"

@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      @import url('https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap');
+    </style>
+    <title>Boonmail</title>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
+    <link href="static/css/tigerhacks.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="bg" style="height:100vh;">
+      <div style="width:50%;">
+        <form action="/end" method="get">
+          <input type="text" name="guess" placeholder="Guess the title" style="width:50%;margin: 0;position: absolute;top: 50%;left: 50%;-ms-transform: translate(-50%, -50%);transform: translate(-50%, -50%);">
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

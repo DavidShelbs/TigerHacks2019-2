@@ -17,6 +17,12 @@ import random
 
 lines_words = {}
 videoID = ""
+total_input = list()
+score = 0
+ARGS = 0
+num_words = 0
+title = ""
+tries = 3
 
 app = Flask(__name__)
 
@@ -47,9 +53,20 @@ def home():
 def normal():
     global videoID
     global lines_words
+    global last_words
+    global ARGS
+    global num_words
+    global title
+    args = 0
     session['CURR_LINE_NUM'] += 0
     videoIDs = ['E1ZVSFfCk9g', 'CnAmeh0-E-U', 'SlPhMPnQ58k']
     videoID = random.choice(videoIDs)
+    if videoID == 'E1ZVSFfCk9g':
+        title = "Time"
+    elif videoID == 'CnAmeh0-E-U':
+        title = "Sucker"
+    else:
+        title = "Memories"
 
     if not path.exists("srt/"+videoID+".srt"):
         url = 'http://www.nitrxgen.net/youtube_cc/' + videoID + '.csv'
@@ -59,13 +76,14 @@ def normal():
         filename = wget.download(url, out="srt/"+videoID+".srt", bar=None)
 
     session['vid_data'] = parse_srt.parse_srt("srt/"+videoID+".srt")
-    words = img_download.parse_data(session['vid_data'])
+    words, num_words = img_download.parse_data(session['vid_data'])
     for i in words:
         img_download.downloadimages(i)
 
     urls = list()
     lines_words = img_download.parse_lines_words(session['vid_data'])
     curr_list = lines_words[session['CURR_LINE_NUM']]
+    last_words = curr_list.copy()
     conn = database.create_connection("database.db")
     for i in range(len(curr_list)):
         rows = database.select_img(conn, curr_list[i].strip(",.!?"))
@@ -77,23 +95,27 @@ def normal():
         width = 100/5
         html = '''<div class="row justify-content-center" style="margin:20px;">'''
         for i in range(len(urls)):
-            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input name="''' + str(i) + '''"type="text" class=dynamic_image></div>'''
+            ARGS += 1
         html += '''</div>'''
     elif len(urls) <= 8:
         width = 100/len(urls)
         html = '''<div class="row justify-content-center" style="margin:20px;">'''
         for i in range(len(urls)):
-            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input name="''' + str(i) + '''"type="text" class=dynamic_image></div>'''
+            ARGS += 1
         html += '''</div>'''
     else:
         width = 100/8
         html = '''<div class="row justify-content-center" style="margin:20px;">'''
         for i in range(8):
-            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input name="''' + str(i) + '''"type="text" class=dynamic_image></div>'''
+            ARGS += 1
         html += '''</div>'''
         html += '''<div class="row justify-content-center" style="margin:20px;">'''
         for i in range(8, len(urls)):
-            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input name="''' + str(i) + '''"type="text" class=dynamic_image></div>'''
+            ARGS += 1
         html += '''</div>'''
 
     dynamic_image.write(html)
@@ -108,10 +130,27 @@ def normal():
 @app.route('/next', methods=['GET', 'POST'])
 def next():
     global videoID
-
+    global ARGS
+    global total_input
+    global score
+    global last_words
+    input = list()
     urls = list()
+    for i in range(ARGS):
+        input.append(request.args.get(str(i)))
+        if request.args.get(str(i)) == last_words[i]:
+            score += 1
+    total_input += input
+    print(total_input)
+    print(last_words)
+    print("Score: ", score)
+    ARGS = 0
+    last_words.clear()
+    input.clear()
+
     session['CURR_LINE_NUM'] += 1
     curr_list = lines_words[session['CURR_LINE_NUM']]
+    last_words = curr_list.copy()
     conn = database.create_connection("database.db")
     for i in range(len(curr_list)):
         rows = database.select_img(conn, curr_list[i].strip(",.!?"))
@@ -123,23 +162,27 @@ def next():
         width = 100/5
         html = '''<div class="row justify-content-center" style="margin:20px;">'''
         for i in range(len(urls)):
-            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input name="''' + str(i) + '''"type="text" class=dynamic_image></div>'''
+            ARGS += 1
         html += '''</div>'''
     elif len(urls) <= 8:
         width = 100/len(urls)
         html = '''<div class="row justify-content-center" style="margin:20px;">'''
         for i in range(len(urls)):
-            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input name="''' + str(i) + '''"type="text" class=dynamic_image></div>'''
+            ARGS += 1
         html += '''</div>'''
     else:
         width = 100/8
         html = '''<div class="row justify-content-center" style="margin:20px;">'''
         for i in range(8):
-            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input name="''' + str(i) + '''"type="text" class=dynamic_image></div>'''
+            ARGS += 1
         html += '''</div>'''
         html += '''<div class="row justify-content-center" style="margin:20px;">'''
         for i in range(8, len(urls)):
-            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input name="''' + str(i) + '''"type="text" class=dynamic_image></div>'''
+            ARGS += 1
         html += '''</div>'''
 
     dynamic_image.write(html)
@@ -155,7 +198,7 @@ def next():
 def search():
     global lines_words
     global videoID
-    
+
     urls = list()
     session['SEARCH'] = request.form.get('search')
     search_response = youtube_api.search(query=session['SEARCH'])
@@ -225,6 +268,42 @@ def search():
 
     data = {'videoID': videoID}
     return render_template('normal.html', data=data)
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+@app.route('/guess', methods=['GET', 'POST'])
+def guess():
+    return render_template('guess.html')
+
+###############################################################################
+###############################################################################
+###############################################################################
+
+@app.route('/end', methods=['GET', 'POST'])
+def end():
+    global total_input
+    global num_words
+    global score
+    global title
+    global tries
+    guess = request.args.get("guess")
+    if guess == title:
+        if (len(total_input) / num_words) < .25:
+            score += 100
+        elif (len(total_input) / num_words) < .5:
+            score += 50
+        else:
+            score += 25
+    elif tries > 1:
+        tries -= 1
+        return redirect("/guess")
+
+    print(score)
+    score = 0
+    return render_template('end.html')
+
 
 ###############################################################################
 ###############################################################################
