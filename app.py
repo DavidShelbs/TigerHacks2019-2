@@ -1,5 +1,5 @@
 from flask import Flask
-from flask import Flask, flash, redirect, render_template, request, session, abort
+from flask import Flask, flash, redirect, render_template, request, session, abort, url_for
 import os
 import sqlite3
 import youtube_api
@@ -14,6 +14,7 @@ import database
 import download_yt
 from os import path, walk
 import random
+import time
 
 lines_words = {}
 videoID = ""
@@ -25,16 +26,6 @@ title = ""
 tries = 3
 
 app = Flask(__name__)
-
-@contextmanager
-def suppress_stdout():
-    with open(os.devnull, "w") as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        try:
-            yield
-        finally:
-            sys.stdout = old_stdout
 
 ###############################################################################
 ###############################################################################
@@ -58,7 +49,7 @@ def normal():
     global num_words
     global title
     ARGS = 0
-    session['CURR_LINE_NUM'] += 0
+    session['CURR_LINE_NUM'] = 0
     videoIDs = ['E1ZVSFfCk9g', 'CnAmeh0-E-U', 'SlPhMPnQ58k']
     videoID = random.choice(videoIDs)
     if videoID == 'E1ZVSFfCk9g':
@@ -76,6 +67,7 @@ def normal():
     #     filename = wget.download(url, out="srt/"+videoID+".srt", bar=None)
 
     session['vid_data'] = parse_srt.parse_srt("srt/"+videoID+".srt")
+    words, num_words = img_download.parse_data(session['vid_data'])
 
     urls = list()
     lines_words = img_download.parse_lines_words(session['vid_data'])
@@ -138,9 +130,6 @@ def next():
         if request.args.get(str(i)) == last_words[i]:
             score += 1
     total_input += input
-    print(total_input)
-    print(last_words)
-    print("Score: ", score)
     ARGS = 0
     last_words.clear()
     input.clear()
@@ -191,11 +180,70 @@ def next():
 ###############################################################################
 ###############################################################################
 
+@app.route('/back', methods=['GET', 'POST'])
+def back():
+    global videoID
+    # global session['CURR_LINE_NUM']
+    urls = list()
+    session['CURR_LINE_NUM'] -= 1
+    curr_list = lines_words[session['CURR_LINE_NUM']]
+    conn = database.create_connection("database.db")
+    for i in range(len(curr_list)):
+        rows = database.select_img(conn, curr_list[i])
+        if rows != None:
+            urls.append(rows[0])
+
+    dynamic_image = open('templates/images.html', 'w+')
+    if len(urls) <= 4:
+        width = 100/5
+        html = '''<div class="row justify-content-center" style="margin:20px;">'''
+        for i in range(len(urls)):
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><p class=dynamic_image>''' + curr_list[i].upper() + '''</p></div>'''
+        html += '''</div>'''
+    elif len(urls) <= 8:
+        width = 100/len(urls)
+        html = '''<div class="row justify-content-center" style="margin:20px;">'''
+        for i in range(len(urls)):
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><p class=dynamic_image>''' + curr_list[i].upper() + '''</p></div>'''
+        html += '''</div>'''
+    else:
+        width = 100/8
+        html = '''<div class="row justify-content-center" style="margin:20px;">'''
+        for i in range(8):
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><p class=dynamic_image>''' + curr_list[i].upper() + '''</p></div>'''
+        html += '''</div>'''
+        html += '''<div class="row justify-content-center" style="margin:20px;">'''
+        for i in range(8, len(urls)):
+            html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><p class=dynamic_image>''' + curr_list[i].upper() + '''</p></div>'''
+        html += '''</div>'''
+
+    dynamic_image.write(html)
+    dynamic_image.close()
+
+    # start = session['vid_data'][str(session['CURR_LINE_NUM'])][0][0]
+    # end = session['vid_data'][str(session['CURR_LINE_NUM'])][0][1]
+    # download_yt.get_music_clip(videoID, start, end)
+    #
+    # dynamic_vid = open('templates/video.html', 'w+')
+    # html = '''<audio hidden id="hint" src="static/music/''' + videoID + '''.mp3" type="audio/mpeg" controls>
+    # Your browser does not support the audio element.
+    # </audio>
+    # <button class="btn btn-info" onClick="togglePlay()">Hint</button>'''
+    # dynamic_vid.write(html)
+    # dynamic_vid.close()
+
+    return render_template('normal.html')
+
+###############################################################################
+###############################################################################
+###############################################################################
+
 @app.route('/karaoke', methods=['GET', 'POST'])
 def karaoke():
     global lines_words
     global videoID
 
+    session['CURR_LINE_NUM'] = 0
     session['SEARCH'] = request.form.get('search')
     search_response = youtube_api.search(query=session['SEARCH'])
     for search_result in search_response.get("items", []):
@@ -216,6 +264,7 @@ def karaoke():
     urls = list()
 
     lines_words = img_download.parse_lines_words(session['vid_data'])
+
     curr_list = lines_words[session['CURR_LINE_NUM']]
     last_words = curr_list.copy()
     conn = database.create_connection("database.db")
@@ -324,14 +373,27 @@ def end():
             score += 50
         else:
             score += 25
+        dynamic_points = open('templates/points.html', 'w+')
+        html = '''<h2 class="scoreboard-score">'''
+        for i in range(len(str(score))):
+            html+="<span>" + str(score)[i] + "</span>"
+        html+="<small class='points'>points</small></h2>"
+        dynamic_points.write(html)
+        dynamic_points.close()
+        return render_template('winner.html')
     elif tries > 1:
         tries -= 1
         return redirect("/guess")
 
-    print(score)
+    dynamic_points = open('templates/points.html', 'w+')
+    html = '''<h2 class="scoreboard-score">'''
+    for i in range(len(str(score))):
+        html+="<span>" + str(score)[i] + "</span>"
+    html+="<small class='points'>points</small></h2>"
+    dynamic_points.write(html)
+    dynamic_points.close()
     score = 0
-    return render_template('end.html')
-
+    return render_template('lost.html')
 
 ###############################################################################
 ###############################################################################
@@ -342,66 +404,9 @@ if __name__ == "__main__":
     # app.run(debug=True, host='192.168.0.22', port=80)
     app.run(debug=True,host='0.0.0.0', port=80)
 
-
-
-
-
-# @app.route('/back', methods=['GET', 'POST'])
-# def back():
-#     global videoID
-#     # global session['CURR_LINE_NUM']
-#     urls = list()
-#     session['CURR_LINE_NUM'] -= 1
-#     curr_list = lines_words[session['CURR_LINE_NUM']]
-#     conn = database.create_connection("database.db")
-#     for i in range(len(curr_list)):
-#         rows = database.select_img(conn, curr_list[i])
-#         if rows != None:
-#             urls.append(rows[0])
-#
-#     dynamic_image = open('templates/images.html', 'w+')
-#     if len(urls) <= 4:
-#         width = 100/5
-#         html = '''<div class="row justify-content-center" style="margin:20px;">'''
-#         for i in range(len(urls)):
-#             html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
-#         html += '''</div>'''
-#     elif len(urls) <= 8:
-#         width = 100/len(urls)
-#         html = '''<div class="row justify-content-center" style="margin:20px;">'''
-#         for i in range(len(urls)):
-#             html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
-#         html += '''</div>'''
-#     else:
-#         width = 100/8
-#         html = '''<div class="row justify-content-center" style="margin:20px;">'''
-#         for i in range(8):
-#             html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
-#         html += '''</div>'''
-#         html += '''<div class="row justify-content-center" style="margin:20px;">'''
-#         for i in range(8, len(urls)):
-#             html += '''<div class=dynamic_image style="width: ''' + str(width) + '''%"><img src="''' + urls[i] + '''" class="dynamic_image"><br><input type="text" class=dynamic_image></div>'''
-#         html += '''</div>'''
-#
-#     dynamic_image.write(html)
-#     dynamic_image.close()
-#     print(session['vid_data'])
-#     start = session['vid_data'][str(session['CURR_LINE_NUM'])][0][0]
-#     end = session['vid_data'][str(session['CURR_LINE_NUM'])][0][1]
-#     print(session['vid_data'][str(session['CURR_LINE_NUM'])])
-#     download_yt.get_music_clip(videoID, start, end)
-#
-#     dynamic_vid = open('templates/video.html', 'w+')
-#     html = '''<audio hidden id="hint" src="static/music/''' + videoID + '''.mp3" type="audio/mpeg" controls>
-#     Your browser does not support the audio element.
-#     </audio>
-#     <button class="btn btn-info" onClick="togglePlay()">Hint</button>'''
-#     dynamic_vid.write(html)
-#     dynamic_vid.close()
-#
-#     data = {'videoID': videoID}
-#     return render_template('normal.html', data=data)
-
+###############################################################################
+###############################################################################
+###############################################################################
 
 # start = session['vid_data'][session['CURR_LINE_NUM']][0][0]
 # end = session['vid_data'][session['CURR_LINE_NUM']][0][1]
