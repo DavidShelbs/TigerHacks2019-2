@@ -9,17 +9,14 @@
     <link href="static/css/tigerhacks.css" rel="stylesheet">
   </head>
   <body>
-    {% include 'video.html' %}
     <form method="post" id="img_form">
       <div class="bg" style="height:100vh;">
         <div class="images">
           {% include 'images.html' %}
         </div>
-        <div style="position:absolute; bottom:10%;">
-          <button type="submit" formaction="/back" form="img_form" class="btn btn-success" style="margin-left:20px; margin-right:20px;"><<</button>
-          <button type="submit" class="btn btn-info" form="img_form" style="margin-left:20px; margin-right:20px;">Guess</button>
-          <button type="submit" formaction="/next" form="img_form" class="btn btn-success" style="margin-left:20px; margin-right:20px;">>></button>
-          <button type="button" form="img_form" onClick="load_audio()" style="margin-left:20px; margin-right:20px;">>></button>
+        <div style="position:absolute; bottom:6%; width: 600px;">
+          <button type="submit" class="btn btn-info" form="img_form" style="margin-left:50px; margin-right:50px; width: 150px;">Guess</button>
+          <button type="submit" formaction="/next" form="img_form" class="btn btn-success" style="margin-left:50px; margin-right:50px; width: 150px;">>></button>
         </div>
       </div>
     </form>
