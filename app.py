@@ -57,7 +57,7 @@ def normal():
     global ARGS
     global num_words
     global title
-    args = 0
+    ARGS = 0
     session['CURR_LINE_NUM'] += 0
     videoIDs = ['E1ZVSFfCk9g', 'CnAmeh0-E-U', 'SlPhMPnQ58k']
     videoID = random.choice(videoIDs)
@@ -214,7 +214,7 @@ def karaoke():
         return redirect("/")
 
     urls = list()
-    
+
     lines_words = img_download.parse_lines_words(session['vid_data'])
     curr_list = lines_words[session['CURR_LINE_NUM']]
     last_words = curr_list.copy()
