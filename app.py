@@ -33,6 +33,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
+    global score
+    score = 0
     session['CURR_LINE_NUM'] = 0
     return render_template('index.html')
 
