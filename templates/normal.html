@@ -7,6 +7,12 @@
     <title>Boonmail</title>
     <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
     <link href="static/css/tigerhacks.css" rel="stylesheet">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
   </head>
   <body>
     <form method="get" id="img_form">
@@ -15,10 +21,32 @@
           {% include 'images.html' %}
         </div>
         <div style="position:absolute; bottom:6%; width: 600px;">
-          <button type="submit" formaction="/guess" formmethod="post" class="btn btn-info" form="img_form" style="margin-left:50px; margin-right:50px; width: 150px;">Guess</button>
+          <button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal" style="margin-left:50px; margin-right:50px; width: 150px;">Guess</button>
           <button type="submit" formaction="/next" form="img_form" formmethod="get" class="btn btn-success" style="margin-left:50px; margin-right:50px; width: 150px;">>></button>
         </div>
       </div>
     </form>
   </body>
+
+  <!-- Modal -->
+  <div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <!-- <button type="button" class="close" data-dismiss="modal">&times;</button> -->
+          <h4 class="modal-title">Guess The Title!</h4>
+        </div>
+        <div class="modal-body">
+          <form action="/end" method="get">
+            <input type="text" name="guess" style="width:50%;margin: 0;position: absolute;top: 50%;left: 50%;-ms-transform: translate(-50%, -50%);transform: translate(-50%, -50%);">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 </html>
