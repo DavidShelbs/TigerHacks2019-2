@@ -214,6 +214,7 @@ def karaoke():
         return redirect("/")
 
     urls = list()
+    
     lines_words = img_download.parse_lines_words(session['vid_data'])
     curr_list = lines_words[session['CURR_LINE_NUM']]
     last_words = curr_list.copy()
