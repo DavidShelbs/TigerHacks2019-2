@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      @import url('https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap');
+    </style>
+    <title>Boonmail</title>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
+    <link href="static/css/tigerhacks.css" rel="stylesheet">
+  </head>
+  <body>
+    <form method="get" id="img_form">
+      <div class="bg" style="height:100vh;">
+        <div class="images">
+          {% include 'images.html' %}
+        </div>
+        <div style="position:absolute; bottom:6%; width: 600px;">
+          <button type="submit" formaction="/karaoke_next" form="img_form" formmethod="get" class="btn btn-success" style="margin-left:50px; margin-right:50px; width: 150px;">>></button>
+        </div>
+      </div>
+    </form>
+  </body>
+</html>

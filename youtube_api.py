@@ -20,7 +20,6 @@ def search(query, max_results=1, order="relevance", token=None, location=None, l
     order = order,
     part="id,snippet",
     maxResults=max_results,
-    videoCaption='closedCaption',
     location=location,
     locationRadius=location_radius).execute()
 
