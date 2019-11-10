@@ -15,6 +15,17 @@
     }
   });
 
+  $('button').click(function(e){
+        e.preventDefault();
+        $('.modal').addClass('modal-active');
+
+    });
+    $('.close,.modal-overlay').click(function(e){
+        e.preventDefault();
+        $('.modal').removeClass('modal-active');
+
+    });
+
   const body = document.querySelector('body');
   const searchBtn = document.querySelector('#search');
   const searchInput = document.querySelector('#search-input');
