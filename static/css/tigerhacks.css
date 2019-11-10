@@ -84,6 +84,11 @@ div.dynamic_image {
   float: left;
 }
 
+p.dynamic_image {
+  text-align: center;
+  font-size: 20px;
+}
+
 img.dynamic_image {
   margin: 0 0 5px 0;
   width:100%;
