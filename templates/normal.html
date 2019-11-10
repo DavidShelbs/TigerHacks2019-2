@@ -38,13 +38,13 @@
           <h4 class="modal-title">Guess The Title!</h4>
         </div>
         <div class="modal-body">
-          <form action="/end" method="get">
+          <form action="/end" id="submit_form" method="get">
             <input type="text" name="guess" style="width:50%;margin: 0;position: absolute;top: 50%;left: 50%;-ms-transform: translate(-50%, -50%);transform: translate(-50%, -50%);">
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-success" data-dismiss="modal">Submit</button>
+          <button type="submit" formmethod="post" class="btn btn-success" form="submit_form">Submit</button>
         </div>
       </div>
     </div>
