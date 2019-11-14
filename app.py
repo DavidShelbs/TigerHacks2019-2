@@ -52,8 +52,20 @@ def normal():
     global title
     ARGS = 0
     session['CURR_LINE_NUM'] = 0
-    videoIDs = ['E1ZVSFfCk9g', 'CnAmeh0-E-U', 'SlPhMPnQ58k']
-    videoID = random.choice(videoIDs)
+
+    session['CURR_LINE_NUM'] = 0
+    session['SEARCH'] = request.form.get('search')
+    search_response = youtube_api.search(query=session['SEARCH'])
+    for search_result in search_response.get("items", []):
+            if search_result["id"]["kind"] == "youtube#video":
+                videoID = search_result['id']['videoId']
+
+    if path.exists("srt/"+videoID+".srt"):
+            session['vid_data'] = parse_srt.parse_srt("srt/"+videoID+".srt")
+    else:
+        videoIDs = ['E1ZVSFfCk9g', 'CnAmeh0-E-U', 'SlPhMPnQ58k']
+        videoID = random.choice(videoIDs)
+
     if videoID == 'E1ZVSFfCk9g':
         title = "Time"
     elif videoID == 'CnAmeh0-E-U':
@@ -395,6 +407,7 @@ def end():
     dynamic_points.write(html)
     dynamic_points.close()
     score = 0
+    tries = 3
     return render_template('lost.html')
 
 ###############################################################################
